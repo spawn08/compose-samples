@@ -22,8 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.StringAnnotation
-import androidx.compose.ui.text.annotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -40,7 +39,7 @@ val symbolPattern by lazy {
 enum class SymbolAnnotationType {
     PERSON, LINK
 }
-
+typealias StringAnnotation = AnnotatedString.Range<String>
 // Pair returning styled content and annotation for ClickableText when matching syntax token
 typealias SymbolAnnotation = Pair<AnnotatedString, StringAnnotation?>
 
@@ -62,7 +61,7 @@ fun messageFormatter(
 ): AnnotatedString {
     val tokens = symbolPattern.findAll(text)
 
-    return annotatedString {
+    return buildAnnotatedString {
 
         var cursorPosition = 0
 

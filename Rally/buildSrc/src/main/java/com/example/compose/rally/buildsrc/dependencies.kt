@@ -17,26 +17,24 @@
 package com.example.compose.rally.buildsrc
 
 object Versions {
-    const val ktlint = "0.39.0"
+    const val ktlint = "0.40.0"
 }
 
 object Libs {
-    const val androidGradlePlugin = "com.android.tools.build:gradle:4.2.0-alpha13"
+    const val androidGradlePlugin = "com.android.tools.build:gradle:7.0.0-alpha08"
     const val jdkDesugar = "com.android.tools:desugar_jdk_libs:1.0.9"
-
-    const val junit = "junit:junit:4.13"
 
     const val material = "com.google.android.material:material:1.1.0"
 
     object Kotlin {
-        private const val version = "1.4.10"
+        private const val version = "1.4.30"
         const val stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$version"
         const val gradlePlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$version"
         const val extensions = "org.jetbrains.kotlin:kotlin-android-extensions:$version"
     }
 
     object Coroutines {
-        private const val version = "1.3.9"
+        private const val version = "1.4.2"
         const val core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version"
         const val android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$version"
         const val test = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$version"
@@ -46,9 +44,13 @@ object Libs {
         const val appcompat = "androidx.appcompat:appcompat:1.2.0-rc01"
         const val coreKtx = "androidx.core:core-ktx:1.5.0-alpha02"
 
+        object Activity {
+            const val activityCompose = "androidx.activity:activity-compose:1.3.0-alpha03"
+        }
+
         object Compose {
             const val snapshot = ""
-            const val version = "1.0.0-alpha05"
+            const val version = "1.0.0-beta01"
 
             const val core = "androidx.compose.ui:ui:$version"
             const val foundation = "androidx.compose.foundation:foundation:$version"
@@ -57,9 +59,16 @@ object Libs {
             const val materialIconsExtended = "androidx.compose.material:material-icons-extended:$version"
             const val runtime = "androidx.compose.runtime:runtime:$version"
             const val runtimeLivedata = "androidx.compose.runtime:runtime-livedata:$version"
-            const val tooling = "androidx.ui:ui-tooling:$version"
-            const val test = "androidx.compose.test:test-core:$version"
-            const val uiTest = "androidx.ui:ui-test:$version"
+            const val tooling = "androidx.compose.ui:ui-tooling:$version"
+            const val test = "androidx.compose.ui:ui-test:$version"
+            const val uiTest = "androidx.compose.ui:ui-test-junit4:$version"
+        }
+
+        object Lifecycle {
+            private const val version = "2.3.0"
+            const val extensions = "androidx.lifecycle:lifecycle-extensions:$version"
+            const val livedata = "androidx.lifecycle:lifecycle-livedata-ktx:$version"
+            const val viewmodel = "androidx.lifecycle:lifecycle-viewmodel-ktx:$version"
         }
 
         object Navigation {
@@ -80,17 +89,10 @@ object Libs {
 
             const val espressoCore = "androidx.test.espresso:espresso-core:3.2.0"
         }
-
-        object Lifecycle {
-            private const val version = "2.2.0"
-            const val extensions = "androidx.lifecycle:lifecycle-extensions:$version"
-            const val livedata = "androidx.lifecycle:lifecycle-livedata-ktx:$version"
-            const val viewmodel = "androidx.lifecycle:lifecycle-viewmodel-ktx:$version"
-        }
     }
 }
 
 object Urls {
     const val composeSnapshotRepo = "https://androidx-dev-prod.appspot.com/snapshots/builds/" +
-        "${Libs.AndroidX.Compose.snapshot}/artifacts/ui/repository/"
+        "${Libs.AndroidX.Compose.snapshot}/artifacts/repository/"
 }

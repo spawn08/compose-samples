@@ -16,15 +16,13 @@
 
 package com.example.compose.jetsurvey.signinsignup
 
-import androidx.compose.foundation.AmbientContentColor
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeight
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.Button
 import androidx.compose.material.ExperimentalMaterialApi
@@ -33,18 +31,18 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Snackbar
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.ExperimentalFocus
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Preview
 import com.example.compose.jetsurvey.R
 import com.example.compose.jetsurvey.theme.JetsurveyTheme
 import com.example.compose.jetsurvey.theme.snackbarAction
@@ -74,7 +72,7 @@ fun SignIn(onNavigationEvent: (SignInEvent) -> Unit) {
                 onBackPressed = { onNavigationEvent(SignInEvent.NavigateBack) }
             )
         },
-        bodyContent = {
+        content = {
             SignInSignUpScreen(
                 onSignedInAsGuest = { onNavigationEvent(SignInEvent.SignInAsGuest) },
                 modifier = Modifier.fillMaxWidth()
@@ -85,7 +83,7 @@ fun SignIn(onNavigationEvent: (SignInEvent) -> Unit) {
                             onNavigationEvent(SignInEvent.SignIn(email, password))
                         }
                     )
-                    Spacer(modifier = Modifier.preferredHeight(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     TextButton(
                         onClick = {
                             scope.launch {
@@ -113,7 +111,6 @@ fun SignIn(onNavigationEvent: (SignInEvent) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalFocus::class)
 @Composable
 fun SignInContent(
     onSignInSubmitted: (email: String, password: String) -> Unit,
@@ -123,7 +120,7 @@ fun SignInContent(
         val emailState = remember { EmailState() }
         Email(emailState, onImeAction = { focusRequester.requestFocus() })
 
-        Spacer(modifier = Modifier.preferredHeight(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         val passwordState = remember { PasswordState() }
         Password(
@@ -132,10 +129,12 @@ fun SignInContent(
             modifier = Modifier.focusRequester(focusRequester),
             onImeAction = { onSignInSubmitted(emailState.text, passwordState.text) }
         )
-        Spacer(modifier = Modifier.preferredHeight(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = { onSignInSubmitted(emailState.text, passwordState.text) },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
             enabled = emailState.isValid && passwordState.isValid
         ) {
             Text(
@@ -157,7 +156,7 @@ fun ErrorSnackbar(
         snackbar = { data ->
             Snackbar(
                 modifier = Modifier.padding(16.dp),
-                text = {
+                content = {
                     Text(
                         text = data.message,
                         style = MaterialTheme.typography.body2
@@ -165,10 +164,7 @@ fun ErrorSnackbar(
                 },
                 action = {
                     data.actionLabel?.let {
-                        TextButton(
-                            onClick = onDismiss,
-                            contentColor = AmbientContentColor.current
-                        ) {
+                        TextButton(onClick = onDismiss) {
                             Text(
                                 text = stringResource(id = R.string.dismiss),
                                 color = MaterialTheme.colors.snackbarAction

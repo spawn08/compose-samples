@@ -18,60 +18,79 @@ package androidx.compose.samples.crane.home
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.compose.animation.DpPropKey
-import androidx.compose.animation.core.FloatPropKey
+import androidx.activity.compose.setContent
+import androidx.annotation.VisibleForTesting
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring.StiffnessLow
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.transitionDefinition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.transition
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.samples.crane.base.CraneScaffold
 import androidx.compose.samples.crane.calendar.launchCalendarActivity
 import androidx.compose.samples.crane.details.launchDetailsActivity
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawOpacity
-import androidx.compose.ui.platform.setContent
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            CraneScaffold {
-                val onExploreItemClicked: OnExploreItemClicked = remember {
-                    { launchDetailsActivity(context = this, item = it) }
-                }
-                val onDateSelectionClicked = remember {
-                    { launchCalendarActivity(this) }
-                }
+            MainScreen(
+                onExploreItemClicked = { launchDetailsActivity(context = this, item = it) },
+                onDateSelectionClicked = { launchCalendarActivity(this) }
+            )
+        }
+    }
+}
 
-                var splashShown by remember { mutableStateOf(SplashState.Shown) }
-                val transition = transition(splashTransitionDefinition, splashShown)
-                Box {
-                    LandingScreen(
-                        modifier = Modifier.drawOpacity(transition[splashAlphaKey]),
-                        onTimeout = { splashShown = SplashState.Completed }
-                    )
-                    MainContent(
-                        modifier = Modifier.drawOpacity(transition[contentAlphaKey]),
-                        topPadding = transition[contentTopPaddingKey],
-                        onExploreItemClicked = onExploreItemClicked,
-                        onDateSelectionClicked = onDateSelectionClicked
-                    )
-                }
-            }
+@VisibleForTesting
+@Composable
+fun MainScreen(onExploreItemClicked: OnExploreItemClicked, onDateSelectionClicked: () -> Unit) {
+    CraneScaffold {
+        val transitionState = remember { MutableTransitionState(SplashState.Shown) }
+        val transition = updateTransition(transitionState)
+        val splashAlpha by transition.animateFloat(
+            transitionSpec = { tween(durationMillis = 100) }
+        ) {
+            if (it == SplashState.Shown) 1f else 0f
+        }
+        val contentAlpha by transition.animateFloat(
+            transitionSpec = { tween(durationMillis = 300) }
+        ) {
+            if (it == SplashState.Shown) 0f else 1f
+        }
+        val contentTopPadding by transition.animateDp(
+            transitionSpec = { spring(stiffness = StiffnessLow) }
+        ) {
+            if (it == SplashState.Shown) 100.dp else 0.dp
+        }
+
+        Box {
+            LandingScreen(
+                modifier = Modifier.alpha(splashAlpha),
+                onTimeout = { transitionState.targetState = SplashState.Completed }
+            )
+            MainContent(
+                modifier = Modifier.alpha(contentAlpha),
+                topPadding = contentTopPadding,
+                onExploreItemClicked = onExploreItemClicked,
+                onDateSelectionClicked = onDateSelectionClicked
+            )
         }
     }
 }
@@ -94,31 +113,3 @@ private fun MainContent(
 }
 
 enum class SplashState { Shown, Completed }
-
-private val splashAlphaKey = FloatPropKey("Splash alpha")
-private val contentAlphaKey = FloatPropKey("Content alpha")
-private val contentTopPaddingKey = DpPropKey("Top padding")
-
-private val splashTransitionDefinition = transitionDefinition<SplashState> {
-    state(SplashState.Shown) {
-        this[splashAlphaKey] = 1f
-        this[contentAlphaKey] = 0f
-        this[contentTopPaddingKey] = 100.dp
-    }
-    state(SplashState.Completed) {
-        this[splashAlphaKey] = 0f
-        this[contentAlphaKey] = 1f
-        this[contentTopPaddingKey] = 0.dp
-    }
-    transition {
-        splashAlphaKey using tween(
-            durationMillis = 100
-        )
-        contentAlphaKey using tween(
-            durationMillis = 300
-        )
-        contentTopPaddingKey using spring(
-            stiffness = StiffnessLow
-        )
-    }
-}

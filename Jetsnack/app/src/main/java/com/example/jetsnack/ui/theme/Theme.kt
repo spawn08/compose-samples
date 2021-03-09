@@ -20,16 +20,16 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Providers
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.onCommit
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticAmbientOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import com.example.jetsnack.ui.utils.SysUiController
+import com.example.jetsnack.ui.utils.LocalSysUiController
 
 private val LightColorPalette = JetsnackColors(
     brand = Shadow5,
@@ -84,8 +84,8 @@ fun JetsnackTheme(
 ) {
     val colors = if (darkTheme) DarkColorPalette else LightColorPalette
 
-    val sysUiController = SysUiController.current
-    onCommit(sysUiController, colors.uiBackground) {
+    val sysUiController = LocalSysUiController.current
+    SideEffect {
         sysUiController.setSystemBarsColor(
             color = colors.uiBackground.copy(alpha = AlphaNearOpaque)
         )
@@ -102,9 +102,9 @@ fun JetsnackTheme(
 }
 
 object JetsnackTheme {
-    @Composable
     val colors: JetsnackColors
-        get() = AmbientJetsnackColors.current
+        @Composable
+        get() = LocalJetsnackColors.current
 }
 
 /**
@@ -225,10 +225,10 @@ fun ProvideJetsnackColors(
 ) {
     val colorPalette = remember { colors }
     colorPalette.update(colors)
-    Providers(AmbientJetsnackColors provides colorPalette, children = content)
+    CompositionLocalProvider(LocalJetsnackColors provides colorPalette, content = content)
 }
 
-private val AmbientJetsnackColors = staticAmbientOf<JetsnackColors> {
+private val LocalJetsnackColors = staticCompositionLocalOf<JetsnackColors> {
     error("No JetsnackColorPalette provided")
 }
 

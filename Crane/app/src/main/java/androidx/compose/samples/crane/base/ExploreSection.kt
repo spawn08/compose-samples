@@ -17,22 +17,23 @@
 package androidx.compose.samples.crane.base
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeight
-import androidx.compose.foundation.layout.preferredSize
-import androidx.compose.foundation.layout.preferredWidth
-import androidx.compose.foundation.lazy.LazyColumnFor
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.samples.crane.R
 import androidx.compose.samples.crane.data.ExploreModel
@@ -44,7 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.accompanist.coil.CoilImage
 
@@ -61,17 +62,20 @@ fun ExploreSection(
                 text = title,
                 style = MaterialTheme.typography.caption.copy(color = crane_caption)
             )
-            Spacer(Modifier.preferredHeight(8.dp))
-            LazyColumnFor(
+            Spacer(Modifier.height(8.dp))
+            LazyColumn(
                 modifier = Modifier.weight(1f),
-                items = exploreList
-            ) { item ->
-                ExploreItem(
-                    modifier = Modifier.fillParentMaxWidth(),
-                    item = item,
-                    onItemClicked = onItemClicked
-                )
-                Divider(color = crane_divider_color)
+            ) {
+                items(exploreList) { exploreItem ->
+                    Column(Modifier.fillParentMaxWidth()) {
+                        ExploreItem(
+                            modifier = Modifier.fillParentMaxWidth(),
+                            item = exploreItem,
+                            onItemClicked = onItemClicked
+                        )
+                        Divider(color = crane_divider_color)
+                    }
+                }
             }
         }
     }
@@ -93,23 +97,25 @@ private fun ExploreItem(
                 data = item.imageUrl,
                 fadeIn = true,
                 contentScale = ContentScale.Crop,
+                contentDescription = null,
                 loading = {
                     Box(Modifier.fillMaxSize()) {
                         Image(
-                            modifier = Modifier.preferredSize(36.dp).align(Alignment.Center),
-                            asset = vectorResource(id = R.drawable.ic_crane_logo)
+                            modifier = Modifier.size(36.dp).align(Alignment.Center),
+                            painter = painterResource(id = R.drawable.ic_crane_logo),
+                            contentDescription = null
                         )
                     }
                 }
             )
         }
-        Spacer(Modifier.preferredWidth(24.dp))
+        Spacer(Modifier.width(24.dp))
         Column {
             Text(
                 text = item.city.nameToDisplay,
                 style = MaterialTheme.typography.h6
             )
-            Spacer(Modifier.preferredHeight(8.dp))
+            Spacer(Modifier.height(8.dp))
             Text(
                 text = item.description,
                 style = MaterialTheme.typography.caption.copy(color = crane_caption)
@@ -119,8 +125,8 @@ private fun ExploreItem(
 }
 
 @Composable
-private fun ExploreImageContainer(children: @Composable () -> Unit) {
-    Surface(Modifier.preferredSize(width = 60.dp, height = 60.dp), RoundedCornerShape(4.dp)) {
-        children()
+private fun ExploreImageContainer(content: @Composable () -> Unit) {
+    Surface(Modifier.size(width = 60.dp, height = 60.dp), RoundedCornerShape(4.dp)) {
+        content()
     }
 }

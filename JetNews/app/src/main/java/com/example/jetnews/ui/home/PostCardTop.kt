@@ -17,24 +17,24 @@
 package com.example.jetnews.ui.home
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeight
-import androidx.compose.material.AmbientEmphasisLevels
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ProvideEmphasis
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.ContextAmbient
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Preview
-import com.example.jetnews.data.posts.impl.getPostsWithImagesLoaded
 import com.example.jetnews.data.posts.impl.post2
 import com.example.jetnews.data.posts.impl.posts
 import com.example.jetnews.model.Post
@@ -45,27 +45,28 @@ fun PostCardTop(post: Post, modifier: Modifier = Modifier) {
     // TUTORIAL CONTENT STARTS HERE
     val typography = MaterialTheme.typography
     Column(modifier = modifier.fillMaxWidth().padding(16.dp)) {
-        post.image?.let { image ->
-            val imageModifier = Modifier
-                .heightIn(min = 180.dp)
-                .fillMaxWidth()
-                .clip(shape = MaterialTheme.shapes.medium)
-            Image(image, modifier = imageModifier, contentScale = ContentScale.Crop)
-        }
-        Spacer(Modifier.preferredHeight(16.dp))
+        val imageModifier = Modifier
+            .heightIn(min = 180.dp)
+            .fillMaxWidth()
+            .clip(shape = MaterialTheme.shapes.medium)
+        Image(
+            painter = painterResource(post.imageId),
+            contentDescription = null, // decorative
+            modifier = imageModifier,
+            contentScale = ContentScale.Crop
+        )
+        Spacer(Modifier.height(16.dp))
 
-        val emphasisLevels = AmbientEmphasisLevels.current
-        ProvideEmphasis(emphasisLevels.high) {
-            Text(
-                text = post.title,
-                style = typography.h6
-            )
-            Text(
-                text = post.metadata.author.name,
-                style = typography.body2
-            )
-        }
-        ProvideEmphasis(emphasisLevels.medium) {
+        Text(
+            text = post.title,
+            style = typography.h6
+        )
+        Text(
+            text = post.metadata.author.name,
+            style = typography.body2
+        )
+
+        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
             Text(
                 text = "${post.metadata.date} - ${post.metadata.readTimeMinutes} min read",
                 style = typography.body2
@@ -99,8 +100,7 @@ fun TutorialPreviewFontscale() {
 fun TutorialPreviewTemplate(
     darkTheme: Boolean = false
 ) {
-    val context = ContextAmbient.current
-    val previewPosts = getPostsWithImagesLoaded(posts.subList(1, 2), context.resources)
+    val previewPosts = posts.subList(1, 2)
     val post = previewPosts[0]
 
     ThemedPreview(darkTheme) {

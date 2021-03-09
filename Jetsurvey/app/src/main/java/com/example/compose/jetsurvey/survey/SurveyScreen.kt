@@ -16,41 +16,41 @@
 
 package com.example.compose.jetsurvey.survey
 
-import androidx.annotation.StringRes
-import androidx.compose.foundation.Icon
-import androidx.compose.foundation.ScrollableColumn
-import androidx.compose.foundation.Text
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeight
-import androidx.compose.foundation.layout.preferredWidth
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.Button
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
-import androidx.compose.material.TextButton
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.FiberManualRecord
-import androidx.compose.material.icons.outlined.FiberManualRecord
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.savedinstancestate.savedInstanceState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.compose.jetsurvey.R
+import com.example.compose.jetsurvey.theme.progressIndicatorBackground
 
 @Composable
 fun SurveyQuestionsScreen(
@@ -59,18 +59,27 @@ fun SurveyQuestionsScreen(
     onDonePressed: () -> Unit,
     onBackPressed: () -> Unit
 ) {
-    var currentQuestionIndex by savedInstanceState { 0 }
-    val questionState =
-        remember(currentQuestionIndex) { questions.questionsState[currentQuestionIndex] }
+    val questionState = remember(questions.currentQuestionIndex) {
+        questions.questionsState[questions.currentQuestionIndex]
+    }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = { SurveyTopAppBar(questions.surveyTitle, onBackPressed) },
-            bodyContent = { innerPadding ->
+            topBar = {
+                SurveyTopAppBar(
+                    questionIndex = questionState.questionIndex,
+                    totalQuestionsCount = questionState.totalQuestionsCount,
+                    onBackPressed = onBackPressed
+                )
+            },
+            content = { innerPadding ->
                 Question(
                     question = questionState.question,
                     answer = questionState.answer,
-                    onAnswer = { questionState.answer = it },
+                    onAnswer = {
+                        questionState.answer = it
+                        questionState.enableNext = true
+                    },
                     onAction = onAction,
                     modifier = Modifier
                         .fillMaxSize()
@@ -80,8 +89,8 @@ fun SurveyQuestionsScreen(
             bottomBar = {
                 SurveyBottomBar(
                     questionState = questionState,
-                    onPreviousPressed = { currentQuestionIndex-- },
-                    onNextPressed = { currentQuestionIndex++ },
+                    onPreviousPressed = { questions.currentQuestionIndex-- },
+                    onNextPressed = { questions.currentQuestionIndex++ },
                     onDonePressed = onDonePressed
                 )
             }
@@ -92,20 +101,20 @@ fun SurveyQuestionsScreen(
 @Composable
 fun SurveyResultScreen(
     result: SurveyState.Result,
-    onDonePressed: () -> Unit,
-    onBackPressed: () -> Unit
+    onDonePressed: () -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = { SurveyTopAppBar(result.surveyTitle, onBackPressed) },
-            bodyContent = { innerPadding ->
+            content = { innerPadding ->
                 val modifier = Modifier.padding(innerPadding)
                 SurveyResult(result = result, modifier = modifier)
             },
             bottomBar = {
                 OutlinedButton(
                     onClick = { onDonePressed() },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 24.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 24.dp)
                 ) {
                     Text(text = stringResource(id = R.string.done))
                 }
@@ -116,54 +125,92 @@ fun SurveyResultScreen(
 
 @Composable
 private fun SurveyResult(result: SurveyState.Result, modifier: Modifier = Modifier) {
-    ScrollableColumn(modifier = modifier.fillMaxSize()) {
-        Spacer(modifier = Modifier.preferredHeight(44.dp))
-        Text(
-            text = result.surveyResult.library,
-            style = MaterialTheme.typography.h3,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
-        Text(
-            text = stringResource(
-                result.surveyResult.result,
-                result.surveyResult.library
-            ),
-            style = MaterialTheme.typography.subtitle1,
-            modifier = Modifier.padding(20.dp)
-        )
-        Text(
-            text = stringResource(result.surveyResult.description),
-            style = MaterialTheme.typography.body1,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
+    LazyColumn(modifier = modifier.fillMaxSize()) {
+        item {
+            Spacer(modifier = Modifier.height(44.dp))
+            Text(
+                text = result.surveyResult.library,
+                style = MaterialTheme.typography.h3,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+            Text(
+                text = stringResource(
+                    result.surveyResult.result,
+                    result.surveyResult.library
+                ),
+                style = MaterialTheme.typography.subtitle1,
+                modifier = Modifier.padding(20.dp)
+            )
+            Text(
+                text = stringResource(result.surveyResult.description),
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+        }
     }
 }
 
 @Composable
+private fun TopAppBarTitle(
+    questionIndex: Int,
+    totalQuestionsCount: Int,
+    modifier: Modifier = Modifier
+) {
+    val indexStyle = MaterialTheme.typography.caption.toSpanStyle().copy(
+        fontWeight = FontWeight.Bold
+    )
+    val totalStyle = MaterialTheme.typography.caption.toSpanStyle()
+    val text = buildAnnotatedString {
+        withStyle(style = indexStyle) {
+            append("${questionIndex + 1}")
+        }
+        withStyle(style = totalStyle) {
+            append(stringResource(R.string.question_count, totalQuestionsCount))
+        }
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.caption,
+        modifier = modifier
+    )
+}
+
+@Composable
 private fun SurveyTopAppBar(
-    @StringRes surveyTitle: Int,
+    questionIndex: Int,
+    totalQuestionsCount: Int,
     onBackPressed: () -> Unit
 ) {
-    TopAppBar(
-        title = {
-            Text(
-                text = stringResource(id = surveyTitle),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            TopAppBarTitle(
+                questionIndex = questionIndex,
+                totalQuestionsCount = totalQuestionsCount,
+                modifier = Modifier
+                    .padding(vertical = 20.dp)
+                    .align(Alignment.Center)
             )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBackPressed) {
-                Icon(Icons.Filled.ChevronLeft)
+
+            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                IconButton(
+                    onClick = onBackPressed,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Close,
+                        contentDescription = stringResource(id = R.string.close)
+                    )
+                }
             }
-        },
-        // We need to balance the navigation icon, so we add a spacer.
-        actions = {
-            Spacer(modifier = Modifier.preferredWidth(68.dp))
-        },
-        backgroundColor = MaterialTheme.colors.surface,
-        elevation = 0.dp
-    )
+        }
+        LinearProgressIndicator(
+            progress = (questionIndex + 1) / totalQuestionsCount.toFloat(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            backgroundColor = MaterialTheme.colors.progressIndicatorBackground
+        )
+    }
 }
 
 @Composable
@@ -173,53 +220,41 @@ private fun SurveyBottomBar(
     onNextPressed: () -> Unit,
     onDonePressed: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, bottom = 24.dp)
+    Surface(
+        elevation = 3.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        TextButton(
-            modifier = Modifier.weight(1f).wrapContentWidth(align = Alignment.Start),
-            onClick = onPreviousPressed,
-            enabled = questionState.enablePrevious
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 20.dp)
         ) {
-            Text(text = stringResource(id = R.string.previous))
-        }
-        PageIndicator(
-            pagesCount = questionState.totalQuestionsCount,
-            currentPageIndex = questionState.questionIndex
-        )
-        if (questionState.showDone) {
-            TextButton(
-                modifier = Modifier.weight(1f).wrapContentWidth(align = Alignment.End),
-                onClick = onDonePressed
-            ) {
-                Text(text = stringResource(id = R.string.done))
+            if (questionState.showPrevious) {
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = onPreviousPressed
+                ) {
+                    Text(text = stringResource(id = R.string.previous))
+                }
+                Spacer(modifier = Modifier.width(16.dp))
             }
-        } else {
-            TextButton(
-                modifier = Modifier.weight(1f).wrapContentWidth(align = Alignment.End),
-                onClick = onNextPressed
-            ) {
-                Text(text = stringResource(id = R.string.next))
-            }
-        }
-    }
-}
-
-@Composable
-private fun PageIndicator(pagesCount: Int, currentPageIndex: Int, modifier: Modifier = Modifier) {
-    Row(modifier = modifier.wrapContentSize(align = Alignment.Center)) {
-        for (pageIndex in 0 until pagesCount) {
-            val asset = if (currentPageIndex == pageIndex) {
-                Icons.Filled.FiberManualRecord
+            if (questionState.showDone) {
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = onDonePressed,
+                    enabled = questionState.enableNext
+                ) {
+                    Text(text = stringResource(id = R.string.done))
+                }
             } else {
-                Icons.Outlined.FiberManualRecord
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = onNextPressed,
+                    enabled = questionState.enableNext
+                ) {
+                    Text(text = stringResource(id = R.string.next))
+                }
             }
-            Icon(
-                asset = asset,
-                tint = MaterialTheme.colors.primary
-            )
         }
     }
 }

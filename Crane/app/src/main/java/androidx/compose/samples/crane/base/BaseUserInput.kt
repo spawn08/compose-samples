@@ -17,18 +17,18 @@
 package androidx.compose.samples.crane.base
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.AmbientContentColor
-import androidx.compose.foundation.BaseTextField
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Icon
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredSize
-import androidx.compose.foundation.layout.preferredWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.Icon
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,10 +39,11 @@ import androidx.compose.samples.crane.ui.captionTextStyle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Preview
 
 @Composable
 fun SimpleUserInput(
@@ -63,7 +64,7 @@ fun CraneUserInput(
     modifier: Modifier = Modifier,
     caption: String? = null,
     @DrawableRes vectorImageId: Int? = null,
-    tint: Color = AmbientContentColor.current
+    tint: Color = LocalContentColor.current
 ) {
     CraneBaseUserInput(
         modifier = modifier,
@@ -93,13 +94,18 @@ fun CraneEditableUserInput(
         showCaption = { !isHint() },
         vectorImageId = vectorImageId
     ) {
-        BaseTextField(
+        BasicTextField(
             value = textFieldState,
             onValueChange = {
                 textFieldState = it
                 if (!isHint()) onInputChanged(textFieldState.text)
             },
-            textStyle = if (isHint()) captionTextStyle else MaterialTheme.typography.body1,
+            textStyle = if (isHint()) {
+                captionTextStyle.copy(color = LocalContentColor.current)
+            } else {
+                MaterialTheme.typography.body1.copy(color = LocalContentColor.current)
+            },
+            cursorBrush = SolidColor(LocalContentColor.current)
         )
     }
 }
@@ -111,18 +117,19 @@ private fun CraneBaseUserInput(
     @DrawableRes vectorImageId: Int? = null,
     showCaption: () -> Boolean = { true },
     tintIcon: () -> Boolean,
-    tint: Color = AmbientContentColor.current,
-    children: @Composable () -> Unit
+    tint: Color = LocalContentColor.current,
+    content: @Composable () -> Unit
 ) {
     Surface(modifier = modifier, color = MaterialTheme.colors.primaryVariant) {
         Row(Modifier.padding(all = 12.dp)) {
             if (vectorImageId != null) {
                 Icon(
-                    modifier = Modifier.preferredSize(24.dp, 24.dp),
-                    asset = vectorResource(id = vectorImageId),
-                    tint = if (tintIcon()) tint else Color(0x80FFFFFF)
+                    modifier = Modifier.size(24.dp, 24.dp),
+                    painter = painterResource(id = vectorImageId),
+                    tint = if (tintIcon()) tint else Color(0x80FFFFFF),
+                    contentDescription = null
                 )
-                Spacer(Modifier.preferredWidth(8.dp))
+                Spacer(Modifier.width(8.dp))
             }
             if (caption != null && showCaption()) {
                 Text(
@@ -130,10 +137,10 @@ private fun CraneBaseUserInput(
                     text = caption,
                     style = (captionTextStyle).copy(color = tint)
                 )
-                Spacer(Modifier.preferredWidth(8.dp))
+                Spacer(Modifier.width(8.dp))
             }
             Row(Modifier.weight(1f).align(Alignment.CenterVertically)) {
-                children()
+                content()
             }
         }
     }
@@ -141,7 +148,7 @@ private fun CraneBaseUserInput(
 
 @Preview
 @Composable
-fun previewInput() {
+fun PreviewInput() {
     CraneScaffold {
         CraneBaseUserInput(
             tintIcon = { true },

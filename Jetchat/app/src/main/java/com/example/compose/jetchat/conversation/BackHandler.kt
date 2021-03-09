@@ -17,39 +17,41 @@
 package com.example.compose.jetchat.conversation
 
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.OnBackPressedDispatcherOwner
-import androidx.compose.runtime.Ambient
+import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.onCommit
+import androidx.compose.runtime.CompositionLocal
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticAmbientOf
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.staticCompositionLocalOf
 
 /**
- * This [Composable] can be used with a [BackPressedDispatcherAmbient] to intercept a back press (if
- * [enabled]).
+ * This [Composable] can be used with a [LocalBackPressedDispatcher] to intercept a back press.
+ *
+ * @param onBackPressed (Event) What to do when back is intercepted
+ *
  */
 @Composable
-fun backPressHandler(onBackPressed: () -> Unit, enabled: Boolean = true) {
-    val dispatcher = BackPressedDispatcherAmbient.current.onBackPressedDispatcher
+fun BackPressHandler(onBackPressed: () -> Unit) {
+    // Safely update the current `onBack` lambda when a new one is provided
+    val currentOnBackPressed by rememberUpdatedState(onBackPressed)
 
-    // This callback is going to be remembered only if onBackPressed is referentially equal.
-    val backCallback = remember(onBackPressed) {
-        object : OnBackPressedCallback(enabled) {
+    // Remember in Composition a back callback that calls the `onBackPressed` lambda
+    val backCallback = remember {
+        object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                onBackPressed()
+                currentOnBackPressed()
             }
         }
     }
 
-    // Using onCommit guarantees that failed transactions don't incorrectly toggle the
-    // remembered callback.
-    onCommit(enabled) {
-        backCallback.isEnabled = enabled
-    }
+    val backDispatcher = LocalBackPressedDispatcher.current
 
-    onCommit(dispatcher, onBackPressed) {
-        // Whenever there's a new dispatcher set up the callback
-        dispatcher.addCallback(backCallback)
+    // Whenever there's a new dispatcher set up the callback
+    DisposableEffect(backDispatcher) {
+        backDispatcher.addCallback(backCallback)
+        // When the effect leaves the Composition, or there's a new dispatcher, remove the callback
         onDispose {
             backCallback.remove()
         }
@@ -57,13 +59,15 @@ fun backPressHandler(onBackPressed: () -> Unit, enabled: Boolean = true) {
 }
 
 /**
- * This [Ambient] is used to provide an [OnBackPressedDispatcherOwner]:
+ * This [CompositionLocal] is used to provide an [OnBackPressedDispatcher]:
  *
  * ```
- * Providers(BackPressedDispatcherAmbient provides requireActivity()) { }
+ * CompositionLocalProvider(
+ *     LocalBackPressedDispatcher provides requireActivity().onBackPressedDispatcher
+ * ) { }
  * ```
  *
- * and setting up the callbacks with [backPressHandler].
+ * and setting up the callbacks with [BackPressHandler].
  */
-val BackPressedDispatcherAmbient =
-    staticAmbientOf<OnBackPressedDispatcherOwner> { error("Ambient used without Provider") }
+val LocalBackPressedDispatcher =
+    staticCompositionLocalOf<OnBackPressedDispatcher> { error("No Back Dispatcher provided") }

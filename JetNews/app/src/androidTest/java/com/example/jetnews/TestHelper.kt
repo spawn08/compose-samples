@@ -18,15 +18,15 @@ package com.example.jetnews
 
 import android.content.Context
 import androidx.compose.runtime.remember
+import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.lifecycle.SavedStateHandle
-import androidx.ui.test.ComposeTestRuleJUnit
 import com.example.jetnews.ui.JetnewsApp
 import com.example.jetnews.ui.NavigationViewModel
 
 /**
  * Launches the app from a test context
  */
-fun ComposeTestRuleJUnit.launchJetNewsApp(context: Context) {
+fun ComposeContentTestRule.launchJetNewsApp(context: Context) {
     setContent {
         JetnewsApp(
             TestAppContainer(context),

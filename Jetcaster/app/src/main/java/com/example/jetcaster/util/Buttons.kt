@@ -16,22 +16,25 @@
 
 package com.example.jetcaster.util
 
-import androidx.compose.animation.animate
-import androidx.compose.foundation.AmbientContentColor
-import androidx.compose.foundation.Icon
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.AmbientEmphasisLevels
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawShadow
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.jetcaster.R
 
 @Composable
 fun ToggleFollowPodcastIconButton(
@@ -45,28 +48,32 @@ fun ToggleFollowPodcastIconButton(
     ) {
         Icon(
             // TODO: think about animating these icons
-            asset = when {
+            imageVector = when {
                 isFollowed -> Icons.Default.Check
                 else -> Icons.Default.Add
             },
-            tint = animate(
+            contentDescription = when {
+                isFollowed -> stringResource(R.string.cd_unfollow)
+                else -> stringResource(R.string.cd_follow)
+            },
+            tint = animateColorAsState(
                 when {
-                    isFollowed -> AmbientContentColor.current
-                    else -> AmbientEmphasisLevels.current.high.applyEmphasis(Color.Black)
+                    isFollowed -> LocalContentColor.current
+                    else -> Color.Black.copy(alpha = ContentAlpha.high)
                 }
-            ),
+            ).value,
             modifier = Modifier
-                .drawShadow(
-                    elevation = animate(if (isFollowed) 0.dp else 1.dp),
+                .shadow(
+                    elevation = animateDpAsState(if (isFollowed) 0.dp else 1.dp).value,
                     shape = MaterialTheme.shapes.small
                 )
                 .background(
-                    color = animate(
+                    color = animateColorAsState(
                         when {
                             isFollowed -> MaterialTheme.colors.surface.copy(0.38f)
                             else -> Color.White
                         }
-                    ),
+                    ).value,
                     shape = MaterialTheme.shapes.small
                 )
                 .padding(4.dp)

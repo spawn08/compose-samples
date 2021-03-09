@@ -19,6 +19,8 @@ import com.example.crane.buildsrc.Libs
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
+    id 'dagger.hilt.android.plugin'
 }
 
 // Reads the Google maps key that is used in the AndroidManifest
@@ -36,7 +38,13 @@ android {
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.compose.samples.crane.CustomTestRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments["dagger.hilt.disableModulesHaveInstallInCheck"] = "true"
+            }
+        }
 
         manifestPlaceholders = [ googleMapsKey : properties.getProperty("google.maps.key", "") ]
     }
@@ -57,7 +65,7 @@ android {
         }
 
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -81,29 +89,51 @@ android {
         resValues false
         shaders false
     }
+
     composeOptions {
-        kotlinCompilerVersion Libs.Kotlin.version
         kotlinCompilerExtensionVersion Libs.AndroidX.Compose.version
+    }
+
+    packagingOptions {
+        // Multiple dependency bring these files in. Exclude them to enable
+        // our test APK to build (has no effect on our AARs)
+        excludes += "/META-INF/AL2.0"
+        excludes += "/META-INF/LGPL2.1"
     }
 }
 
 dependencies {
     implementation Libs.Kotlin.stdlib
-    implementation Libs.googleMaps
+    implementation Libs.Kotlin.Coroutines.android
+    implementation Libs.GoogleMaps.maps
+    implementation Libs.GoogleMaps.mapsKtx
 
+    implementation Libs.Accompanist.coil
+    implementation Libs.AndroidX.Activity.activityCompose
     implementation Libs.AndroidX.Compose.runtime
     implementation Libs.AndroidX.Compose.runtimeLivedata
     implementation Libs.AndroidX.Compose.foundation
     implementation Libs.AndroidX.Compose.material
     implementation Libs.AndroidX.Compose.layout
     implementation Libs.AndroidX.Compose.animation
-    implementation Libs.AndroidX.UI.tooling
+    implementation Libs.AndroidX.Compose.tooling
+    implementation Libs.AndroidX.Lifecycle.viewModelCompose
 
-    implementation Libs.Accompanist.coil
+    implementation Libs.AndroidX.Lifecycle.viewModelKtx
+    implementation Libs.Hilt.android
+    kapt Libs.Hilt.compiler
 
+    // FIXME: only needed for Compose alpha12
+    androidTestImplementation Libs.AndroidX.Activity.activityCompose
+
+    androidTestImplementation Libs.JUnit.junit
     androidTestImplementation Libs.AndroidX.Test.runner
     androidTestImplementation Libs.AndroidX.Test.espressoCore
     androidTestImplementation Libs.AndroidX.Test.rules
     androidTestImplementation Libs.AndroidX.Test.Ext.junit
+    androidTestImplementation Libs.Kotlin.Coroutines.test
     androidTestImplementation Libs.AndroidX.Compose.uiTest
+    androidTestImplementation Libs.Hilt.android
+    androidTestImplementation Libs.Hilt.testing
+    kaptAndroidTest Libs.Hilt.compiler
 }

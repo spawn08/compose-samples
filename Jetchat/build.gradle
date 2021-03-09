@@ -32,7 +32,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.diffplug.spotless' version '5.1.1'
+    id 'com.diffplug.spotless' version '5.10.0'
 }
 
 subprojects {
@@ -43,6 +43,7 @@ subprojects {
 
         if (!Libs.AndroidX.Compose.snapshot.isEmpty()) {
             maven { url Urls.composeSnapshotRepo }
+            maven { url Urls.accompanistSnapshotRepo }
         }
     }
 
@@ -52,8 +53,7 @@ subprojects {
             target '**/*.kt'
             targetExclude("$buildDir/**/*.kt")
             targetExclude('bin/**/*.kt')
-
-            ktlint(Versions.ktlint)
+            ktlint(Versions.ktlint).userData([android: "true"])
             licenseHeaderFile rootProject.file('spotless/copyright.kt')
         }
     }
@@ -69,7 +69,6 @@ subprojects {
             freeCompilerArgs += '-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi'
             freeCompilerArgs += '-Xopt-in=kotlinx.coroutines.FlowPreview'
             freeCompilerArgs += '-Xopt-in=kotlin.Experimental'
-            freeCompilerArgs += '-Xallow-jvm-ir-dependencies'
 
             // Set JVM target to 1.8
             jvmTarget = "1.8"

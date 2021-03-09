@@ -18,7 +18,7 @@ package com.example.jetsnack.ui.components
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material.DrawerConstants
+import androidx.compose.material.DrawerDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FabPosition
 import androidx.compose.material.MaterialTheme
@@ -28,7 +28,6 @@ import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.emptyContent
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -43,21 +42,21 @@ import com.example.jetsnack.ui.theme.JetsnackTheme
 fun JetsnackScaffold(
     modifier: Modifier = Modifier,
     scaffoldState: ScaffoldState = rememberScaffoldState(),
-    topBar: @Composable (() -> Unit) = emptyContent(),
-    bottomBar: @Composable (() -> Unit) = emptyContent(),
+    topBar: @Composable (() -> Unit) = {},
+    bottomBar: @Composable (() -> Unit) = {},
     snackbarHost: @Composable (SnackbarHostState) -> Unit = { SnackbarHost(it) },
-    floatingActionButton: @Composable (() -> Unit) = emptyContent(),
+    floatingActionButton: @Composable (() -> Unit) = {},
     floatingActionButtonPosition: FabPosition = FabPosition.End,
     isFloatingActionButtonDocked: Boolean = false,
     drawerContent: @Composable (ColumnScope.() -> Unit)? = null,
     drawerShape: Shape = MaterialTheme.shapes.large,
-    drawerElevation: Dp = DrawerConstants.DefaultElevation,
+    drawerElevation: Dp = DrawerDefaults.Elevation,
     drawerBackgroundColor: Color = JetsnackTheme.colors.uiBackground,
     drawerContentColor: Color = JetsnackTheme.colors.textSecondary,
     drawerScrimColor: Color = JetsnackTheme.colors.uiBorder,
     backgroundColor: Color = JetsnackTheme.colors.uiBackground,
     contentColor: Color = JetsnackTheme.colors.textSecondary,
-    bodyContent: @Composable (PaddingValues) -> Unit
+    content: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(
         modifier = modifier,
@@ -76,6 +75,6 @@ fun JetsnackScaffold(
         drawerScrimColor = drawerScrimColor,
         backgroundColor = backgroundColor,
         contentColor = contentColor,
-        bodyContent = bodyContent
+        content = content
     )
 }

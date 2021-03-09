@@ -16,31 +16,32 @@
 
 package androidx.compose.samples.crane.calendar
 
-import androidx.compose.foundation.ScrollableColumn
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeight
-import androidx.compose.foundation.layout.preferredHeightIn
-import androidx.compose.foundation.layout.preferredSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.samples.crane.calendar.data.year2020
 import androidx.compose.samples.crane.calendar.model.CalendarDay
 import androidx.compose.samples.crane.calendar.model.CalendarMonth
 import androidx.compose.samples.crane.calendar.model.DayOfWeek
 import androidx.compose.samples.crane.calendar.model.DaySelectedStatus
+import androidx.compose.samples.crane.data.CalendarYear
+import androidx.compose.samples.crane.data.DatesLocalDataSource
 import androidx.compose.samples.crane.ui.CraneTheme
 import androidx.compose.samples.crane.util.Circle
 import androidx.compose.samples.crane.util.SemiRect
@@ -49,53 +50,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
-import androidx.compose.ui.semantics.accessibilityLabel
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Preview
 
 typealias CalendarWeek = List<CalendarDay>
 
 @Composable
 fun Calendar(
+    calendarYear: CalendarYear,
     onDayClicked: (CalendarDay, CalendarMonth) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ScrollableColumn(modifier = modifier) {
-        Spacer(Modifier.preferredHeight(32.dp))
-        for (month in year2020) {
-            Month(month = month, onDayClicked = onDayClicked)
-            Spacer(Modifier.preferredHeight(32.dp))
-        }
-    }
-}
-
-@Composable
-private fun Month(
-    modifier: Modifier = Modifier,
-    month: CalendarMonth,
-    onDayClicked: (CalendarDay, CalendarMonth) -> Unit
-) {
-    Column(modifier = modifier) {
-        MonthHeader(
-            modifier = Modifier.padding(horizontal = 30.dp),
-            month = month.name,
-            year = month.year
-        )
-
-        // Expanding width and centering horizontally
-        val contentModifier = Modifier.fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally)
-        DaysOfWeek(modifier = contentModifier)
-        for (week in month.weeks.value) {
-            Week(
-                modifier = contentModifier,
-                week = week,
-                month = month,
-                onDayClicked = { day ->
-                    onDayClicked(day, month)
-                }
-            )
-            Spacer(Modifier.preferredHeight(8.dp))
+    LazyColumn(modifier) {
+        item { Spacer(Modifier.height(32.dp)) }
+        for (month in calendarYear) {
+            itemsCalendarMonth(month = month, onDayClicked = onDayClicked)
+            item {
+                Spacer(Modifier.height(32.dp))
+            }
         }
     }
 }
@@ -126,7 +100,9 @@ private fun Week(
     val (leftFillColor, rightFillColor) = getLeftRightWeekColors(week, month)
 
     Row(modifier = modifier) {
-        val spaceModifiers = Modifier.weight(1f).preferredHeightIn(max = CELL_SIZE)
+        val spaceModifiers = Modifier
+            .weight(1f)
+            .heightIn(max = CELL_SIZE)
         Surface(modifier = spaceModifiers, color = leftFillColor) {
             Spacer(Modifier.fillMaxHeight())
         }
@@ -135,7 +111,7 @@ private fun Week(
                 day,
                 onDayClicked,
                 Modifier.semantics {
-                    accessibilityLabel = "${month.name} ${day.value}"
+                    contentDescription = "${month.name} ${day.value}"
                     dayStatusProperty = day.status
                 }
             )
@@ -170,7 +146,9 @@ private fun Day(
     ) {
         DayStatusContainer(status = day.status) {
             Text(
-                modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center),
                 text = day.value,
                 style = MaterialTheme.typography.body1.copy(color = Color.White)
             )
@@ -193,21 +171,21 @@ private fun Day(name: String) {
 private fun DayContainer(
     modifier: Modifier = Modifier,
     backgroundColor: Color = Color.Transparent,
-    children: @Composable () -> Unit
+    content: @Composable () -> Unit
 ) {
     // What if this doesn't fit the screen? - LayoutFlexible(1f) + LayoutAspectRatio(1f)
     Surface(
-        modifier = modifier.preferredSize(width = CELL_SIZE, height = CELL_SIZE),
+        modifier = modifier.size(width = CELL_SIZE, height = CELL_SIZE),
         color = backgroundColor
     ) {
-        children()
+        content()
     }
 }
 
 @Composable
 private fun DayStatusContainer(
     status: DaySelectedStatus,
-    children: @Composable () -> Unit
+    content: @Composable () -> Unit
 ) {
     if (status.isMarked()) {
         Box {
@@ -218,10 +196,46 @@ private fun DayStatusContainer(
             } else if (status == DaySelectedStatus.LastDay) {
                 SemiRect(color = color, lookingLeft = true)
             }
-            children()
+            content()
         }
     } else {
-        children()
+        content()
+    }
+}
+
+private fun LazyListScope.itemsCalendarMonth(
+    month: CalendarMonth,
+    onDayClicked: (CalendarDay, CalendarMonth) -> Unit
+) {
+    item {
+        MonthHeader(
+            modifier = Modifier.padding(horizontal = 32.dp),
+            month = month.name,
+            year = month.year
+        )
+    }
+
+    // Expanding width and centering horizontally
+    val contentModifier = Modifier
+        .fillMaxWidth()
+        .wrapContentWidth(Alignment.CenterHorizontally)
+    item {
+        DaysOfWeek(modifier = contentModifier)
+    }
+    for (week in month.weeks.value) {
+        item {
+            Week(
+                modifier = contentModifier,
+                week = week,
+                month = month,
+                onDayClicked = { day ->
+                    onDayClicked(day, month)
+                }
+            )
+        }
+        item {
+            Spacer(Modifier.height(8.dp))
+        }
     }
 }
 
@@ -280,6 +294,6 @@ var SemanticsPropertyReceiver.dayStatusProperty by DayStatusKey
 @Composable
 fun DayPreview() {
     CraneTheme {
-        Calendar(onDayClicked = { _, _ -> })
+        Calendar(DatesLocalDataSource().year2020, onDayClicked = { _, _ -> })
     }
 }

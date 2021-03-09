@@ -16,53 +16,54 @@
 
 package com.example.compose.jetchat.profile
 
-import androidx.compose.foundation.Icon
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.ScrollableColumn
-import androidx.compose.foundation.Text
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeight
-import androidx.compose.foundation.layout.preferredHeightIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.AmbientEmphasisLevels
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Divider
 import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ProvideEmphasis
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.WithConstraints
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.DensityAmbient
-import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Preview
 import com.example.compose.jetchat.R
 import com.example.compose.jetchat.components.AnimatingFabContent
 import com.example.compose.jetchat.components.JetchatAppBar
 import com.example.compose.jetchat.components.baselineHeight
 import com.example.compose.jetchat.data.colleagueProfile
+import com.example.compose.jetchat.data.meProfile
 import com.example.compose.jetchat.theme.JetchatTheme
+import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
+import dev.chrisbanes.accompanist.insets.navigationBarsPadding
+import dev.chrisbanes.accompanist.insets.statusBarsPadding
 
 @Composable
 fun ProfileScreen(userData: ProfileScreenState, onNavIconPressed: () -> Unit = { }) {
@@ -71,42 +72,46 @@ fun ProfileScreen(userData: ProfileScreenState, onNavIconPressed: () -> Unit = {
 
     Column(modifier = Modifier.fillMaxSize()) {
         JetchatAppBar(
-            modifier = Modifier.fillMaxWidth(),
+            // Use statusBarsPadding() to move the app bar content below the status bar
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding(),
             onNavIconPressed = onNavIconPressed,
             title = { },
             actions = {
-                ProvideEmphasis(emphasis = AmbientEmphasisLevels.current.medium) {
+                CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
                     // More icon
                     Icon(
-                        asset = Icons.Outlined.MoreVert,
+                        imageVector = Icons.Outlined.MoreVert,
                         modifier = Modifier
                             .clickable(onClick = {}) // TODO: Show not implemented dialog.
                             .padding(horizontal = 12.dp, vertical = 16.dp)
-                            .preferredHeight(24.dp)
+                            .height(24.dp),
+                        contentDescription = stringResource(id = R.string.more_options)
                     )
                 }
             }
         )
-        WithConstraints {
-            Box(modifier = Modifier.weight(1f)) {
-                Surface {
-                    ScrollableColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        scrollState = scrollState
-                    ) {
-                        ProfileHeader(
-                            scrollState,
-                            userData
-                        )
-                        UserInfoFields(userData, maxHeight)
-                    }
+        BoxWithConstraints(modifier = Modifier.weight(1f)) {
+            Surface {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState),
+                ) {
+                    ProfileHeader(
+                        scrollState,
+                        userData,
+                        this@BoxWithConstraints.maxHeight
+                    )
+                    UserInfoFields(userData, this@BoxWithConstraints.maxHeight)
                 }
-                ProfileFab(
-                    extended = scrollState.value == 0f,
-                    userIsMe = userData.isMe(),
-                    modifier = Modifier.align(Alignment.BottomEnd)
-                )
             }
+            ProfileFab(
+                extended = scrollState.value == 0,
+                userIsMe = userData.isMe(),
+                modifier = Modifier.align(Alignment.BottomEnd)
+            )
         }
     }
 }
@@ -114,7 +119,7 @@ fun ProfileScreen(userData: ProfileScreenState, onNavIconPressed: () -> Unit = {
 @Composable
 private fun UserInfoFields(userData: ProfileScreenState, containerHeight: Dp) {
     Column {
-        Spacer(modifier = Modifier.preferredHeight(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         NameAndPosition(userData)
 
@@ -130,7 +135,7 @@ private fun UserInfoFields(userData: ProfileScreenState, containerHeight: Dp) {
 
         // Add a spacer that always shows part (320.dp) of the fields list regardless of the device,
         // in order to always leave some content at the top.
-        Spacer(Modifier.preferredHeight((containerHeight - 320.dp).coerceAtLeast(0.dp)))
+        Spacer(Modifier.height((containerHeight - 320.dp).coerceAtLeast(0.dp)))
     }
 }
 
@@ -145,25 +150,25 @@ private fun NameAndPosition(
         )
         Position(
             userData,
-            modifier = Modifier.padding(bottom = 20.dp).baselineHeight(24.dp)
+            modifier = Modifier
+                .padding(bottom = 20.dp)
+                .baselineHeight(24.dp)
         )
     }
 }
 
 @Composable
 private fun Name(userData: ProfileScreenState, modifier: Modifier = Modifier) {
-    ProvideEmphasis(emphasis = AmbientEmphasisLevels.current.high) {
-        Text(
-            text = userData.name,
-            modifier = modifier,
-            style = MaterialTheme.typography.h5
-        )
-    }
+    Text(
+        text = userData.name,
+        modifier = modifier,
+        style = MaterialTheme.typography.h5
+    )
 }
 
 @Composable
 private fun Position(userData: ProfileScreenState, modifier: Modifier = Modifier) {
-    ProvideEmphasis(emphasis = AmbientEmphasisLevels.current.medium) {
+    CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
         Text(
             text = userData.position,
             modifier = modifier,
@@ -175,31 +180,22 @@ private fun Position(userData: ProfileScreenState, modifier: Modifier = Modifier
 @Composable
 private fun ProfileHeader(
     scrollState: ScrollState,
-    data: ProfileScreenState
+    data: ProfileScreenState,
+    containerHeight: Dp
 ) {
     val offset = (scrollState.value / 2)
-    val offsetDp = with(DensityAmbient.current) { offset.toDp() }
+    val offsetDp = with(LocalDensity.current) { offset.toDp() }
 
     data.photo?.let {
-        val asset = imageResource(id = it)
-        val ratioAsset = asset.width / asset.height.toFloat()
-
-        Box(
+        Image(
             modifier = Modifier
+                .heightIn(max = containerHeight / 2)
                 .fillMaxWidth()
-                // Allow for landscape and portrait ratios
-                .preferredHeightIn(max = 320.dp)
-                .aspectRatio(ratioAsset)
-                .background(Color.LightGray)
-        ) {
-            Image(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = offsetDp),
-                asset = asset,
-                contentScale = ContentScale.Crop
-            )
-        }
+                .padding(top = offsetDp),
+            painter = painterResource(id = it),
+            contentScale = ContentScale.Crop,
+            contentDescription = null
+        )
     }
 }
 
@@ -207,7 +203,7 @@ private fun ProfileHeader(
 fun ProfileProperty(label: String, value: String, isLink: Boolean = false) {
     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
         Divider()
-        ProvideEmphasis(emphasis = AmbientEmphasisLevels.current.medium) {
+        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
             Text(
                 text = label,
                 modifier = Modifier.baselineHeight(24.dp),
@@ -219,13 +215,11 @@ fun ProfileProperty(label: String, value: String, isLink: Boolean = false) {
         } else {
             MaterialTheme.typography.body1
         }
-        ProvideEmphasis(emphasis = AmbientEmphasisLevels.current.high) {
-            Text(
-                text = value,
-                modifier = Modifier.baselineHeight(24.dp),
-                style = style
-            )
-        }
+        Text(
+            text = value,
+            modifier = Modifier.baselineHeight(24.dp),
+            style = style
+        )
     }
 }
 
@@ -236,12 +230,14 @@ fun ProfileError() {
 
 @Composable
 fun ProfileFab(extended: Boolean, userIsMe: Boolean, modifier: Modifier = Modifier) {
+
     key(userIsMe) { // Prevent multiple invocations to execute during composition
         FloatingActionButton(
             onClick = { /* TODO */ },
             modifier = modifier
                 .padding(16.dp)
-                .preferredHeight(48.dp)
+                .navigationBarsPadding()
+                .height(48.dp)
                 .widthIn(min = 48.dp),
             backgroundColor = MaterialTheme.colors.primary,
             contentColor = MaterialTheme.colors.onPrimary
@@ -249,7 +245,10 @@ fun ProfileFab(extended: Boolean, userIsMe: Boolean, modifier: Modifier = Modifi
             AnimatingFabContent(
                 icon = {
                     Icon(
-                        asset = if (userIsMe) Icons.Outlined.Create else Icons.Outlined.Chat
+                        imageVector = if (userIsMe) Icons.Outlined.Create else Icons.Outlined.Chat,
+                        contentDescription = stringResource(
+                            if (userIsMe) R.string.edit_profile else R.string.message
+                        )
                     )
                 },
                 text = {
@@ -266,18 +265,42 @@ fun ProfileFab(extended: Boolean, userIsMe: Boolean, modifier: Modifier = Modifi
     }
 }
 
-@Preview
+@Preview(widthDp = 640, heightDp = 360)
 @Composable
-fun ConvPreview480MeDefault() {
-    JetchatTheme {
-        ProfileScreen(colleagueProfile)
+fun ConvPreviewLandscapeMeDefault() {
+    ProvideWindowInsets(consumeWindowInsets = false) {
+        JetchatTheme {
+            ProfileScreen(meProfile)
+        }
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 480)
+@Composable
+fun ConvPreviewPortraitMeDefault() {
+    ProvideWindowInsets(consumeWindowInsets = false) {
+        JetchatTheme {
+            ProfileScreen(meProfile)
+        }
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 480)
+@Composable
+fun ConvPreviewPortraitOtherDefault() {
+    ProvideWindowInsets(consumeWindowInsets = false) {
+        JetchatTheme {
+            ProfileScreen(colleagueProfile)
+        }
     }
 }
 
 @Preview
 @Composable
 fun ProfileFabPreview() {
-    JetchatTheme {
-        ProfileFab(extended = true, userIsMe = false)
+    ProvideWindowInsets(consumeWindowInsets = false) {
+        JetchatTheme {
+            ProfileFab(extended = true, userIsMe = false)
+        }
     }
 }

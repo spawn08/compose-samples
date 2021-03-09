@@ -29,7 +29,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.diffplug.spotless' version '5.1.1'
+    id 'com.diffplug.spotless' version '5.10.0'
 }
 
 subprojects {
@@ -38,9 +38,8 @@ subprojects {
         jcenter()
 
         if (!Libs.AndroidX.Compose.snapshot.isEmpty()) {
-            maven {
-                url "https://androidx.dev/snapshots/builds/${Libs.AndroidX.Compose.snapshot}/artifacts/ui/repository/"
-            }
+            maven { url "https://androidx.dev/snapshots/builds/${Libs.AndroidX.Compose.snapshot}/artifacts/repository/" }
+            maven { url "http://androidx.dev/storage/repository/androidx/constraintlayout" }
         }
 
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
@@ -52,7 +51,13 @@ subprojects {
             allWarningsAsErrors = true
             // Opt-in to experimental compose APIs
             freeCompilerArgs += '-Xopt-in=kotlin.RequiresOptIn'
-            freeCompilerArgs += "-Xallow-jvm-ir-dependencies"
+        }
+    }
+
+    configurations.configureEach {
+        // androidx.test forces JUnit, 4.12, prefer 4.13
+        resolutionStrategy {
+            force Libs.JUnit.junit
         }
     }
 
@@ -62,7 +67,7 @@ subprojects {
             target '**/*.kt'
             targetExclude("$buildDir/**/*.kt")
             targetExclude('bin/**/*.kt')
-            ktlint(Versions.ktlint)
+            ktlint(Versions.ktlint).userData([android: "true"])
             licenseHeaderFile rootProject.file('spotless/copyright.kt')
         }
     }

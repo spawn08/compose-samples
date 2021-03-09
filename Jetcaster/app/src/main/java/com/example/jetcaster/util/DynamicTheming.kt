@@ -18,7 +18,7 @@ package com.example.jetcaster.util
 
 import android.content.Context
 import androidx.collection.LruCache
-import androidx.compose.animation.animate
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.material.MaterialTheme
@@ -30,7 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ContextAmbient
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.graphics.drawable.toBitmap
 import androidx.palette.graphics.Palette
 import coil.Coil
@@ -42,7 +42,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun rememberDominantColorState(
-    context: Context = ContextAmbient.current,
+    context: Context = LocalContext.current,
     defaultColor: Color = MaterialTheme.colors.primary,
     defaultOnColor: Color = MaterialTheme.colors.onPrimary,
     cacheSize: Int = 12,
@@ -61,8 +61,14 @@ fun DynamicThemePrimaryColorsFromImage(
     content: @Composable () -> Unit
 ) {
     val colors = MaterialTheme.colors.copy(
-        primary = animate(dominantColorState.color, spring(stiffness = Spring.StiffnessLow)),
-        onPrimary = animate(dominantColorState.onColor, spring(stiffness = Spring.StiffnessLow))
+        primary = animateColorAsState(
+            dominantColorState.color,
+            spring(stiffness = Spring.StiffnessLow)
+        ).value,
+        onPrimary = animateColorAsState(
+            dominantColorState.onColor,
+            spring(stiffness = Spring.StiffnessLow)
+        ).value
     )
     MaterialTheme(colors = colors, content = content)
 }

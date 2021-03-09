@@ -52,9 +52,13 @@ val DarkThemeColors = darkColors(
     onError = Color.Black
 )
 
-@Composable
 val Colors.snackbarAction: Color
+    @Composable
     get() = if (isLight) Purple300 else Purple700
+
+val Colors.progressIndicatorBackground: Color
+    @Composable
+    get() = if (isLight) Color.Black.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.24f)
 
 @Composable
 fun JetsurveyTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable() () -> Unit) {

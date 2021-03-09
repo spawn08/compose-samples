@@ -20,7 +20,7 @@ import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropValue
 import androidx.compose.material.DrawerValue
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalDrawerLayout
+import androidx.compose.material.ModalDrawer
 import androidx.compose.material.rememberBackdropScaffoldState
 import androidx.compose.material.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.samples.crane.base.CraneDrawer
 import androidx.compose.samples.crane.base.CraneTabBar
@@ -36,7 +37,8 @@ import androidx.compose.samples.crane.base.ExploreSection
 import androidx.compose.samples.crane.data.ExploreModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.viewinterop.viewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 
 typealias OnExploreItemClicked = (ExploreModel) -> Unit
 
@@ -51,19 +53,23 @@ fun CraneHome(
     modifier: Modifier = Modifier,
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    ModalDrawerLayout(
+    ModalDrawer(
         drawerState = drawerState,
         gesturesEnabled = drawerState.isOpen,
         drawerContent = { CraneDrawer() },
-        bodyContent = {
-            CraneHomeContent(
-                modifier = modifier,
-                onExploreItemClicked = onExploreItemClicked,
-                onDateSelectionClicked = onDateSelectionClicked,
-                openDrawer = { drawerState.open() }
-            )
-        }
-    )
+    ) {
+        val scope = rememberCoroutineScope()
+        CraneHomeContent(
+            modifier = modifier,
+            onExploreItemClicked = onExploreItemClicked,
+            onDateSelectionClicked = onDateSelectionClicked,
+            openDrawer = {
+                scope.launch {
+                    drawerState.open()
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -154,8 +160,13 @@ private fun SearchContent(
     onDateSelectionClicked: () -> Unit,
     onExploreItemClicked: OnExploreItemClicked
 ) {
+    // Reading datesSelected State from here instead of passing the String from the ViewModel
+    // to cause a recomposition when the dates change.
+    val datesSelected = viewModel.datesSelected.toString()
+
     when (tabSelected) {
         CraneScreen.Fly -> FlySearchContent(
+            datesSelected,
             searchUpdates = FlySearchContentUpdates(
                 onPeopleChanged = onPeopleChanged,
                 onToDestinationChanged = { viewModel.toDestinationChanged(it) },
@@ -164,6 +175,7 @@ private fun SearchContent(
             )
         )
         CraneScreen.Sleep -> SleepSearchContent(
+            datesSelected,
             sleepUpdates = SleepSearchContentUpdates(
                 onPeopleChanged = onPeopleChanged,
                 onDateSelectionClicked = onDateSelectionClicked,
@@ -171,6 +183,7 @@ private fun SearchContent(
             )
         )
         CraneScreen.Eat -> EatSearchContent(
+            datesSelected,
             eatUpdates = EatSearchContentUpdates(
                 onPeopleChanged = onPeopleChanged,
                 onDateSelectionClicked = onDateSelectionClicked,

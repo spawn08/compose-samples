@@ -17,72 +17,102 @@
 package com.example.compose.jetchat
 
 import android.os.Bundle
-import android.view.Menu
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
+import androidx.compose.material.rememberScaffoldState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.core.os.bundleOf
+import androidx.core.view.WindowCompat
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.navigation.NavigationView
+import androidx.navigation.fragment.NavHostFragment
+import com.example.compose.jetchat.components.JetchatScaffold
+import com.example.compose.jetchat.conversation.BackPressHandler
+import com.example.compose.jetchat.conversation.LocalBackPressedDispatcher
+import com.example.compose.jetchat.databinding.ContentMainBinding
+import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
+import kotlinx.coroutines.launch
 
 /**
- * Main activity for the app. Shows a drawer and a toolbar rendered with traditional Views, for now.
+ * Main activity for the app.
  */
 class NavActivity : AppCompatActivity() {
-
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var drawerLayout: DrawerLayout
+    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        drawerLayout = findViewById(R.id.drawer_layout)
-        val navView: NavigationView = findViewById(R.id.nav_view)
-        val navController = findNavController(R.id.nav_host_fragment)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.nav_home,
-                R.id.nav_profile
-            ),
-            drawerLayout
-        )
-        navView.setupWithNavController(navController)
-    }
+        // Turn off the decor fitting system windows, which allows us to handle insets,
+        // including IME animations
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.main, menu)
-        return true
-    }
+        setContent {
+            // Provide WindowInsets to our content. We don't want to consume them, so that
+            // they keep being pass down the view hierarchy (since we're using fragments).
+            ProvideWindowInsets(consumeWindowInsets = false) {
+                CompositionLocalProvider(
+                    LocalBackPressedDispatcher provides this.onBackPressedDispatcher
+                ) {
+                    val scaffoldState = rememberScaffoldState()
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment)
-        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-    }
+                    val scope = rememberCoroutineScope()
+                    val openDrawerEvent = viewModel.drawerShouldBeOpened.observeAsState()
+                    if (openDrawerEvent.value == true) {
+                        // Open drawer and reset state in VM.
+                        scope.launch {
+                            scaffoldState.drawerState.open()
+                            viewModel.resetOpenDrawerAction()
+                        }
+                    }
 
-    /**
-     * Back closes drawer if open.
-     */
-    override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
+                    // Intercepts back navigation when the drawer is open
+                    if (scaffoldState.drawerState.isOpen) {
+                        BackPressHandler {
+                            scope.launch {
+                                scaffoldState.drawerState.close()
+                            }
+                        }
+                    }
+
+                    JetchatScaffold(
+                        scaffoldState,
+                        onChatClicked = {
+                            findNavController().popBackStack(R.id.nav_home, true)
+                            scope.launch {
+                                scaffoldState.drawerState.close()
+                            }
+                        },
+                        onProfileClicked = {
+                            val bundle = bundleOf("userId" to it)
+                            findNavController().navigate(R.id.nav_profile, bundle)
+                            scope.launch {
+                                scaffoldState.drawerState.close()
+                            }
+                        }
+                    ) {
+                        // TODO: Fragments inflated via AndroidViewBinding don't work as expected
+                        //  https://issuetracker.google.com/179915946
+                        // AndroidViewBinding(ContentMainBinding::inflate)
+                        FragmentAwareAndroidViewBinding(ContentMainBinding::inflate)
+                    }
+                }
+            }
         }
     }
 
+    override fun onSupportNavigateUp(): Boolean {
+        return findNavController().navigateUp() || super.onSupportNavigateUp()
+    }
+
     /**
-     * Opens the drawer if present.
-     *
-     * ]TODO: Replace with compose Scaffold.
+     * See https://issuetracker.google.com/142847973
      */
-    fun openDrawer() {
-        val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
-        drawer?.openDrawer(GravityCompat.START)
+    private fun findNavController(): NavController {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        return navHostFragment.navController
     }
 }

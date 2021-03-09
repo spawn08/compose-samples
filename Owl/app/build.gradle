@@ -19,7 +19,6 @@ import com.example.owl.buildsrc.Libs
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    id 'kotlin-android-extensions'
 }
 
 android {
@@ -50,7 +49,7 @@ android {
         }
 
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -71,24 +70,44 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerVersion Libs.Kotlin.version
         kotlinCompilerExtensionVersion Libs.AndroidX.Compose.version
+    }
+
+    packagingOptions {
+        exclude "META-INF/licenses/**"
+        exclude "META-INF/AL2.0"
+        exclude "META-INF/LGPL2.1"
     }
 }
 
 dependencies {
     implementation Libs.Kotlin.stdlib
-
+    implementation Libs.Coroutines.android
+    
     implementation Libs.AndroidX.coreKtx
+    implementation Libs.AndroidX.navigation
+    implementation Libs.AndroidX.Activity.activityCompose
+    implementation Libs.AndroidX.ConstraintLayout.constraintLayoutCompose
 
     implementation Libs.AndroidX.Compose.runtime
     implementation Libs.AndroidX.Compose.foundation
     implementation Libs.AndroidX.Compose.layout
     implementation Libs.AndroidX.Compose.ui
+    implementation Libs.AndroidX.Compose.uiUtil
     implementation Libs.AndroidX.Compose.material
     implementation Libs.AndroidX.Compose.animation
     implementation Libs.AndroidX.Compose.iconsExtended
     implementation Libs.AndroidX.Compose.tooling
 
     implementation Libs.Accompanist.coil
+    implementation Libs.Accompanist.insets
+
+    androidTestImplementation Libs.AndroidX.Activity.activityCompose
+
+    androidTestImplementation Libs.JUnit.junit
+    androidTestImplementation Libs.AndroidX.Test.core
+    androidTestImplementation Libs.AndroidX.Test.espressoCore
+    androidTestImplementation Libs.AndroidX.Test.rules
+    androidTestImplementation Libs.AndroidX.Test.Ext.junit
+    androidTestImplementation Libs.AndroidX.Compose.uiTest
 }

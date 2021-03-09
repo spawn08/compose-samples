@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package com.example.jetsnack.ui.home
+package androidx.compose.samples.crane.di
 
-import androidx.compose.foundation.Text
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.example.jetsnack.R
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import javax.inject.Qualifier
 
-@Composable
-fun Cart(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(R.string.home_cart),
-        modifier = modifier
-            .fillMaxSize()
-            .wrapContentSize()
-    )
+@Module
+@InstallIn(SingletonComponent::class)
+class DispatchersModule {
+
+    @Provides
+    @DefaultDispatcher
+    fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
 }
+
+@Retention(AnnotationRetention.BINARY)
+@Qualifier
+annotation class DefaultDispatcher

@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package androidx.compose.samples.crane.base
+package com.example.jetsnack.ui.utils
 
-import androidx.compose.samples.crane.calendar.model.DatesSelectedState
+import java.math.BigDecimal
+import java.text.NumberFormat
 
-object ServiceLocator {
-    val datesSelected = DatesSelectedState()
+fun formatPrice(price: Long): String {
+    return NumberFormat.getCurrencyInstance().format(
+        BigDecimal(price).movePointLeft(2)
+    )
 }

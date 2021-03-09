@@ -17,8 +17,8 @@
 package com.example.jetsnack.ui.components
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Layout
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.Layout
 
 /**
  * A simple grid which lays elements out vertically in evenly sized [columns].
@@ -30,7 +30,7 @@ fun VerticalGrid(
     content: @Composable () -> Unit
 ) {
     Layout(
-        children = content,
+        content = content,
         modifier = modifier
     ) { measurables, constraints ->
         val itemWidth = constraints.maxWidth / columns

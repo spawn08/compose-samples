@@ -18,17 +18,17 @@ package com.example.owl.ui.courses
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.AmbientContentColor
-import androidx.compose.foundation.Icon
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.Text
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeight
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -38,15 +38,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.example.owl.R
 import com.example.owl.model.courses
 import com.example.owl.model.topics
 import com.example.owl.ui.theme.BlueTheme
-import com.example.owl.ui.utils.navigationBarsHeightPlus
-import com.example.owl.ui.utils.navigationBarsPadding
+import dev.chrisbanes.accompanist.insets.navigationBarsHeight
+import dev.chrisbanes.accompanist.insets.navigationBarsPadding
 
 @Composable
 fun Courses(selectCourse: (Long) -> Unit) {
@@ -57,17 +57,17 @@ fun Courses(selectCourse: (Long) -> Unit) {
             backgroundColor = MaterialTheme.colors.primarySurface,
             bottomBar = {
                 BottomNavigation(
-                    Modifier.navigationBarsHeightPlus(56.dp)
+                    Modifier.navigationBarsHeight(additional = 56.dp)
                 ) {
                     tabs.forEach { tab ->
                         BottomNavigationItem(
-                            icon = { Icon(vectorResource(tab.icon)) },
+                            icon = { Icon(painterResource(tab.icon), contentDescription = null) },
                             label = { Text(stringResource(tab.title).toUpperCase()) },
                             selected = tab == selectedTab,
                             onClick = { setSelectedTab(tab) },
-                            alwaysShowLabels = false,
+                            alwaysShowLabel = false,
                             selectedContentColor = MaterialTheme.colors.secondary,
-                            unselectedContentColor = AmbientContentColor.current,
+                            unselectedContentColor = LocalContentColor.current,
                             modifier = Modifier.navigationBarsPadding()
                         )
                     }
@@ -88,19 +88,23 @@ fun Courses(selectCourse: (Long) -> Unit) {
 fun CoursesAppBar() {
     TopAppBar(
         elevation = 0.dp,
-        modifier = Modifier.preferredHeight(80.dp)
+        modifier = Modifier.height(80.dp)
     ) {
         Image(
             modifier = Modifier
                 .padding(16.dp)
                 .align(Alignment.CenterVertically),
-            asset = vectorResource(id = R.drawable.ic_lockup_white)
+            painter = painterResource(id = R.drawable.ic_lockup_white),
+            contentDescription = null
         )
         IconButton(
             modifier = Modifier.align(Alignment.CenterVertically),
             onClick = { /* todo */ }
         ) {
-            Icon(Icons.Filled.AccountCircle)
+            Icon(
+                imageVector = Icons.Filled.AccountCircle,
+                contentDescription = stringResource(R.string.label_profile)
+            )
         }
     }
 }

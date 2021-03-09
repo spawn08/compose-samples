@@ -17,43 +17,73 @@
 package androidx.compose.samples.crane.details
 
 import androidx.compose.samples.crane.R
+import androidx.compose.samples.crane.data.DestinationsRepository
 import androidx.compose.samples.crane.data.ExploreModel
 import androidx.compose.samples.crane.data.MADRID
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.AndroidComposeTestRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.ui.test.AndroidComposeTestRule
-import androidx.ui.test.assertIsDisplayed
-import androidx.ui.test.onNodeWithText
 import com.google.android.libraries.maps.MapView
 import com.google.android.libraries.maps.model.CameraPosition
 import com.google.android.libraries.maps.model.LatLng
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
+import javax.inject.Inject
+import kotlin.math.pow
+import kotlin.math.round
 
+@HiltAndroidTest
 class DetailsActivityTest {
 
-    private val expectedDescription = "description"
-    private val testExploreModel = ExploreModel(MADRID, expectedDescription, "imageUrl")
+    @Inject
+    lateinit var destinationsRepository: DestinationsRepository
+    lateinit var cityDetails: ExploreModel
 
-    @get:Rule
+    private val city = MADRID
+    private val testExploreModel = ExploreModel(city, "description", "imageUrl")
+
+    @get:Rule(order = 0)
+    var hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
     val composeTestRule = AndroidComposeTestRule(
-        ActivityScenarioRule<DetailsActivity>(
+        activityRule = ActivityScenarioRule<DetailsActivity>(
             createDetailsActivityIntent(
                 InstrumentationRegistry.getInstrumentation().targetContext,
                 testExploreModel
             )
-        )
+        ),
+        // Needed for now, discussed in https://issuetracker.google.com/issues/174472899
+        activityProvider = { rule ->
+            var activity: DetailsActivity? = null
+            rule.scenario.onActivity { activity = it }
+            if (activity == null) {
+                throw IllegalStateException("Activity was not set in the ActivityScenarioRule!")
+            }
+            activity!!
+        }
     )
+
+    @Before
+    fun setUp() {
+        hiltRule.inject()
+        cityDetails = destinationsRepository.getDestination(MADRID.name)!!
+    }
 
     @Test
     fun mapView_cameraPositioned() {
-        composeTestRule.onNodeWithText(MADRID.nameToDisplay).assertIsDisplayed()
-        composeTestRule.onNodeWithText(expectedDescription).assertIsDisplayed()
+        composeTestRule.onNodeWithText(cityDetails.city.nameToDisplay).assertIsDisplayed()
+        composeTestRule.onNodeWithText(cityDetails.description).assertIsDisplayed()
         onView(withId(R.id.map)).check(matches(isDisplayed()))
 
         var cameraPosition: CameraPosition? = null
@@ -87,4 +117,5 @@ class DetailsActivityTest {
     }
 }
 
-private fun Double.round(decimals: Int = 2): Double = "%.${decimals}f".format(this).toDouble()
+private fun Double.round(decimals: Int = 2): Double =
+    round(this * 10f.pow(decimals)) / 10f.pow(decimals)

@@ -24,7 +24,7 @@ import androidx.compose.material.Typography
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Providers
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.owl.R
@@ -126,9 +126,9 @@ private fun OwlTheme(
 ) {
     val elevation = if (darkTheme) DarkElevation else LightElevation
     val images = if (darkTheme) DarkImages else LightImages
-    Providers(
-        AmbientElevations provides elevation,
-        AmbientImages provides images
+    CompositionLocalProvider(
+        LocalElevations provides elevation,
+        LocalImages provides images
     ) {
         MaterialTheme(
             colors = colors,
@@ -148,35 +148,35 @@ object OwlTheme {
     /**
      * Proxy to [MaterialTheme]
      */
-    @Composable
     val colors: Colors
+        @Composable
         get() = MaterialTheme.colors
 
     /**
      * Proxy to [MaterialTheme]
      */
-    @Composable
     val typography: Typography
+        @Composable
         get() = MaterialTheme.typography
 
     /**
      * Proxy to [MaterialTheme]
      */
-    @Composable
     val shapes: Shapes
+        @Composable
         get() = MaterialTheme.shapes
 
     /**
      * Retrieves the current [Elevations] at the call site's position in the hierarchy.
      */
-    @Composable
     val elevations: Elevations
-        get() = AmbientElevations.current
+        @Composable
+        get() = LocalElevations.current
 
     /**
      * Retrieves the current [Images] at the call site's position in the hierarchy.
      */
-    @Composable
     val images: Images
-        get() = AmbientImages.current
+        @Composable
+        get() = LocalImages.current
 }

@@ -16,28 +16,27 @@
 
 package com.example.jetsnack.ui.home.search
 
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeight
-import androidx.compose.foundation.layout.preferredHeightIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.ExperimentalLazyDsl
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Preview
 import com.example.jetsnack.model.SearchRepo
 import com.example.jetsnack.model.SearchSuggestionGroup
 import com.example.jetsnack.ui.components.JetsnackSurface
 import com.example.jetsnack.ui.theme.JetsnackTheme
 
-@OptIn(ExperimentalLazyDsl::class)
 @Composable
 fun SearchSuggestions(
     suggestions: List<SearchSuggestionGroup>,
@@ -56,7 +55,7 @@ fun SearchSuggestions(
                 )
             }
             item {
-                Spacer(Modifier.preferredHeight(4.dp))
+                Spacer(Modifier.height(4.dp))
             }
         }
     }
@@ -72,7 +71,7 @@ private fun SuggestionHeader(
         style = MaterialTheme.typography.h6,
         color = JetsnackTheme.colors.textPrimary,
         modifier = modifier
-            .preferredHeightIn(min = 56.dp)
+            .heightIn(min = 56.dp)
             .padding(horizontal = 24.dp, vertical = 4.dp)
             .wrapContentHeight()
     )
@@ -88,7 +87,7 @@ private fun Suggestion(
         text = suggestion,
         style = MaterialTheme.typography.subtitle1,
         modifier = modifier
-            .preferredHeightIn(min = 48.dp)
+            .heightIn(min = 48.dp)
             .clickable { onSuggestionSelect(suggestion) }
             .padding(start = 24.dp)
             .wrapContentSize(Alignment.CenterStart)

@@ -26,11 +26,12 @@ buildscript {
     dependencies {
         classpath Libs.androidGradlePlugin
         classpath Libs.Kotlin.gradlePlugin
+        classpath Libs.Hilt.gradlePlugin
     }
 }
 
 plugins {
-    id 'com.diffplug.spotless' version '5.1.1'
+    id 'com.diffplug.spotless' version '5.10.0'
 }
 
 subprojects {
@@ -65,7 +66,12 @@ subprojects {
 
             // Use experimental APIs
             freeCompilerArgs += '-Xopt-in=kotlin.RequiresOptIn'
-            freeCompilerArgs += '-Xallow-jvm-ir-dependencies'
+        }
+    }
+    // androidx.test and hilt are forcing JUnit, 4.12. This forces them to use 4.13
+    configurations.configureEach {
+        resolutionStrategy {
+            force Libs.JUnit.junit
         }
     }
 }

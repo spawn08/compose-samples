@@ -16,33 +16,35 @@
 
 package com.example.jetsnack.ui.home.search
 
-import androidx.compose.foundation.Text
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredHeight
-import androidx.compose.foundation.layout.preferredHeightIn
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumnForIndexed
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Layout
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawShadow
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Preview
 import com.example.jetsnack.model.SearchCategory
 import com.example.jetsnack.model.SearchCategoryCollection
 import com.example.jetsnack.ui.components.SnackImage
 import com.example.jetsnack.ui.components.VerticalGrid
-import com.example.jetsnack.ui.components.horizontalGradientBackground
 import com.example.jetsnack.ui.theme.JetsnackTheme
 import kotlin.math.max
 
@@ -50,10 +52,12 @@ import kotlin.math.max
 fun SearchCategories(
     categories: List<SearchCategoryCollection>
 ) {
-    LazyColumnForIndexed(categories) { index, collection ->
-        SearchCategoryCollection(collection, index)
+    LazyColumn {
+        itemsIndexed(categories) { index, collection ->
+            SearchCategoryCollection(collection, index)
+        }
     }
-    Spacer(Modifier.preferredHeight(8.dp))
+    Spacer(Modifier.height(8.dp))
 }
 
 @Composable
@@ -68,7 +72,7 @@ private fun SearchCategoryCollection(
             style = MaterialTheme.typography.h6,
             color = JetsnackTheme.colors.textPrimary,
             modifier = Modifier
-                .preferredHeightIn(min = 56.dp)
+                .heightIn(min = 56.dp)
                 .padding(horizontal = 24.dp, vertical = 4.dp)
                 .wrapContentHeight()
         )
@@ -85,7 +89,7 @@ private fun SearchCategoryCollection(
                 )
             }
         }
-        Spacer(Modifier.preferredHeight(4.dp))
+        Spacer(Modifier.height(4.dp))
     }
 }
 
@@ -102,11 +106,11 @@ private fun SearchCategory(
     Layout(
         modifier = modifier
             .aspectRatio(1.45f)
-            .drawShadow(elevation = 3.dp, shape = CategoryShape)
+            .shadow(elevation = 3.dp, shape = CategoryShape)
             .clip(CategoryShape)
-            .horizontalGradientBackground(gradient)
+            .background(Brush.horizontalGradient(gradient))
             .clickable { /* todo */ },
-        children = {
+        content = {
             Text(
                 text = category.name,
                 style = MaterialTheme.typography.subtitle1,
@@ -117,6 +121,7 @@ private fun SearchCategory(
             )
             SnackImage(
                 imageUrl = category.imageUrl,
+                contentDescription = null,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -127,7 +132,7 @@ private fun SearchCategory(
 
         // Image is sized to the larger of height of item, or a minimum value
         // i.e. may appear larger than item (but clipped to the item bounds)
-        val imageSize = max(MinImageSize.toIntPx(), constraints.maxHeight)
+        val imageSize = max(MinImageSize.roundToPx(), constraints.maxHeight)
         val imagePlaceable = measurables[1].measure(Constraints.fixed(imageSize, imageSize))
         layout(
             width = constraints.maxWidth,

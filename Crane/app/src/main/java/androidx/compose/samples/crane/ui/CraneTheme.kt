@@ -16,9 +16,7 @@
 
 package androidx.compose.samples.crane.ui
 
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
@@ -42,15 +40,15 @@ val craneColors = lightColors(
 )
 
 val BottomSheetShape = RoundedCornerShape(
-    topLeft = CornerSize(20.dp),
-    topRight = CornerSize(20.dp),
-    bottomLeft = ZeroCornerSize,
-    bottomRight = ZeroCornerSize
+    topStart = 20.dp,
+    topEnd = 20.dp,
+    bottomStart = 0.dp,
+    bottomEnd = 0.dp
 )
 
 @Composable
-fun CraneTheme(children: @Composable () -> Unit) {
+fun CraneTheme(content: @Composable () -> Unit) {
     MaterialTheme(colors = craneColors, typography = craneTypography) {
-        children()
+        content()
     }
 }

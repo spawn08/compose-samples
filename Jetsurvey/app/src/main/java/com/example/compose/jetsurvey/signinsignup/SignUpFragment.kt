@@ -23,7 +23,6 @@ import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.observe
 import com.example.compose.jetsurvey.R
 import com.example.compose.jetsurvey.Screen
 import com.example.compose.jetsurvey.navigate
@@ -40,8 +39,8 @@ class SignUpFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        viewModel.navigateTo.observe(owner = viewLifecycleOwner) { navigateToEvent ->
+    ): View {
+        viewModel.navigateTo.observe(viewLifecycleOwner) { navigateToEvent ->
             navigateToEvent.getContentIfNotHandled()?.let { navigateTo ->
                 navigate(navigateTo, Screen.SignUp)
             }
